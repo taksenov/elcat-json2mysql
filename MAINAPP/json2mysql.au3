@@ -4,7 +4,7 @@
  Author:         taksenov@gmail.com
 
  Script Function:
-	Скрипт для обработки файлов JSON и внесения данных из них в БД электронного каталога.
+	РЎРєСЂРёРїС‚ РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё С„Р°Р№Р»РѕРІ JSON Рё РІРЅРµСЃРµРЅРёСЏ РґР°РЅРЅС‹С… РёР· РЅРёС… РІ Р‘Р” СЌР»РµРєС‚СЂРѕРЅРЅРѕРіРѕ РєР°С‚Р°Р»РѕРіР°.
 
 #ce ------------------------------------------
 
@@ -24,88 +24,88 @@
 #Include <JSMN.au3>
 
 
-;объявление переменных------------------------
+;РѕР±СЉСЏРІР»РµРЅРёРµ РїРµСЂРµРјРµРЅРЅС‹С…------------------------
 Global $var = ""
 Global $NumbersOfArray
 Global $ArrayTableIndex
 Dim $1DArray, $TmpArray, $UIDArray
 Dim Const $AppDBPrefix = "elcat_"
 
-;Форма GUI------------------------------------
-Opt("GUIOnEventMode", 1) 													;включить режим онэвент
+;Р¤РѕСЂРјР° GUI------------------------------------
+Opt("GUIOnEventMode", 1) 													;РІРєР»СЋС‡РёС‚СЊ СЂРµР¶РёРј РѕРЅСЌРІРµРЅС‚
 
-;создаем форму и ее управляющие элементы------
+;СЃРѕР·РґР°РµРј С„РѕСЂРјСѓ Рё РµРµ СѓРїСЂР°РІР»СЏСЋС‰РёРµ СЌР»РµРјРµРЅС‚С‹------
 #Region ### START Koda GUI section ### Form=
-$Form1 = GUICreate("Перенос JSON-данных в БД elcat", 957, 420, 186, 120, 1, $WS_EX_TOPMOST)
+$Form1 = GUICreate("РџРµСЂРµРЅРѕСЃ JSON-РґР°РЅРЅС‹С… РІ Р‘Р” elcat", 957, 420, 186, 120, 1, $WS_EX_TOPMOST)
 $lstSprTable = GUICtrlCreateList("", 16, 104, 185, 162)
-GUICtrlSetData(-1, "author|bbk1|bbk2|content|genre|language|library|librarytown|publisher|series|shelfplace")     ;Названия таблиц
-$lbFileName = GUICtrlCreateLabel("<файл JSON>", 16, 16, 186, 24)
+GUICtrlSetData(-1, "author|bbk1|bbk2|content|genre|language|library|librarytown|publisher|series|shelfplace")     ;РќР°Р·РІР°РЅРёСЏ С‚Р°Р±Р»РёС†
+$lbFileName = GUICtrlCreateLabel("<С„Р°Р№Р» JSON>", 16, 16, 186, 24)
 GUICtrlSetFont(-1, 12, 800, 0, "MS Sans Serif")
-$btnJsonOpen = GUICtrlCreateButton("Выбрать", 216, 16, 171, 24)                            ;кнопка выбора файла
+$btnJsonOpen = GUICtrlCreateButton("Р’С‹Р±СЂР°С‚СЊ", 216, 16, 171, 24)                            ;РєРЅРѕРїРєР° РІС‹Р±РѕСЂР° С„Р°Р№Р»Р°
 GUICtrlSetOnEvent($btnJsonOpen, "_FileOpen")                                               ;_FileOpen()
-$btnSprTablEx = GUICtrlCreateButton("Обработать спр-таблицу", 216, 104, 171, 25)
-GUICtrlSetOnEvent($btnSprTablEx, "_ProcessSprTable")                                       ;кнопка для создания SQL для справочной таблицы
+$btnSprTablEx = GUICtrlCreateButton("РћР±СЂР°Р±РѕС‚Р°С‚СЊ СЃРїСЂ-С‚Р°Р±Р»РёС†Сѓ", 216, 104, 171, 25)
+GUICtrlSetOnEvent($btnSprTablEx, "_ProcessSprTable")                                       ;РєРЅРѕРїРєР° РґР»СЏ СЃРѕР·РґР°РЅРёСЏ SQL РґР»СЏ СЃРїСЂР°РІРѕС‡РЅРѕР№ С‚Р°Р±Р»РёС†С‹
 $inpMainTable2 = GUICtrlCreateInput("book", 16, 288, 185, 21)                              ;_ProcessSprTable()
-$btnMainTablEx = GUICtrlCreateButton("Обработать основную таблицу", 216, 288, 171, 25)     ;кнопка для создания SQL для основной таблицы
+$btnMainTablEx = GUICtrlCreateButton("РћР±СЂР°Р±РѕС‚Р°С‚СЊ РѕСЃРЅРѕРІРЅСѓСЋ С‚Р°Р±Р»РёС†Сѓ", 216, 288, 171, 25)     ;РєРЅРѕРїРєР° РґР»СЏ СЃРѕР·РґР°РЅРёСЏ SQL РґР»СЏ РѕСЃРЅРѕРІРЅРѕР№ С‚Р°Р±Р»РёС†С‹
 GUICtrlSetOnEvent($btnMainTablEx, "_ProcessMainTable")                                     ;_ProcessMainTable()
 $edtSqlText = GUICtrlCreateEdit("", 408, 40, 537, 305, BitOR($ES_AUTOVSCROLL, $ES_AUTOHSCROLL, $WS_VSCROLL, $WS_HSCROLL, $ES_MULTILINE))
-GUICtrlSetData(-1, "")																	   ;текст кода добавляется в процессе работы функции
+GUICtrlSetData(-1, "")																	   ;С‚РµРєСЃС‚ РєРѕРґР° РґРѕР±Р°РІР»СЏРµС‚СЃСЏ РІ РїСЂРѕС†РµСЃСЃРµ СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё
 GUICtrlSetFont(-1, 10, 800, 0, "Courier New")
-$Label2 = GUICtrlCreateLabel("Лог работы программы:", 408, 16, 136, 17)
+$Label2 = GUICtrlCreateLabel("Р›РѕРі СЂР°Р±РѕС‚С‹ РїСЂРѕРіСЂР°РјРјС‹:", 408, 16, 136, 17)
 ;$inpMysqlConnect = GUICtrlCreateInput("", 16, 360, 297, 21)
-;$lbMySqlConnect = GUICtrlCreateLabel("Связка с MySQL", 16, 336, 88, 17)
-$btnSqlRun = GUICtrlCreateButton("Очистить лог", 408, 360, 107, 25)                        ;кнопка запуска sql
+;$lbMySqlConnect = GUICtrlCreateLabel("РЎРІСЏР·РєР° СЃ MySQL", 16, 336, 88, 17)
+$btnSqlRun = GUICtrlCreateButton("РћС‡РёСЃС‚РёС‚СЊ Р»РѕРі", 408, 360, 107, 25)                        ;РєРЅРѕРїРєР° Р·Р°РїСѓСЃРєР° sql
 GUICtrlSetOnEvent($btnSqlRun, "_LogClear")                                                 ;_LogClear
 $inpMainTable1 = GUICtrlCreateInput("book", 16, 64, 185, 21)
-$btnMainTablArray = GUICtrlCreateButton("Выгрузить осн.табл в массив", 216, 64, 171, 25)   ;кнопка для создания двумерного массива из основной таблицы
+$btnMainTablArray = GUICtrlCreateButton("Р’С‹РіСЂСѓР·РёС‚СЊ РѕСЃРЅ.С‚Р°Р±Р» РІ РјР°СЃСЃРёРІ", 216, 64, 171, 25)   ;РєРЅРѕРїРєР° РґР»СЏ СЃРѕР·РґР°РЅРёСЏ РґРІСѓРјРµСЂРЅРѕРіРѕ РјР°СЃСЃРёРІР° РёР· РѕСЃРЅРѕРІРЅРѕР№ С‚Р°Р±Р»РёС†С‹
 GUICtrlSetOnEvent($btnMainTablArray, "_ProcessMainTablArray")
 GUISetState(@SW_SHOW)
 #EndRegion ### END Koda GUI section ###
 ;---------------------------------------------
 
-;ставим выполнение окна на бесконечный цикл---
+;СЃС‚Р°РІРёРј РІС‹РїРѕР»РЅРµРЅРёРµ РѕРєРЅР° РЅР° Р±РµСЃРєРѕРЅРµС‡РЅС‹Р№ С†РёРєР»---
 While 1
 	Sleep(1000)   ; Just idle around
 WEnd
 ;---------------------------------------------
 
-;события формы--------------------------------
-Func CLOSEClicked()			    ;закрыть форму
+;СЃРѕР±С‹С‚РёСЏ С„РѕСЂРјС‹--------------------------------
+Func CLOSEClicked()			    ;Р·Р°РєСЂС‹С‚СЊ С„РѕСЂРјСѓ
 	Exit
 EndFunc
 ;---------------------------------------------
 
-;события элементов формы----------------------
-;нажатие на кнопку выбора файла.
+;СЃРѕР±С‹С‚РёСЏ СЌР»РµРјРµРЅС‚РѕРІ С„РѕСЂРјС‹----------------------
+;РЅР°Р¶Р°С‚РёРµ РЅР° РєРЅРѕРїРєСѓ РІС‹Р±РѕСЂР° С„Р°Р№Р»Р°.
 Func _FileOpen()
 
-	$message = "Выберите JSON-файл для обработки"
-	$var = FileOpenDialog($message, "::{450D8FBA-AD25-11D0-98A8-0800361B1103}", "json (*.json)", 1 + 4 )	;папка "Мои документы"
+	$message = "Р’С‹Р±РµСЂРёС‚Рµ JSON-С„Р°Р№Р» РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё"
+	$var = FileOpenDialog($message, "::{450D8FBA-AD25-11D0-98A8-0800361B1103}", "json (*.json)", 1 + 4 )	;РїР°РїРєР° "РњРѕРё РґРѕРєСѓРјРµРЅС‚С‹"
 
 	If @error Then
 		$var = ""
-		MsgBox(4096,"","Файл не выбран")
+		MsgBox(4096,"","Р¤Р°Р№Р» РЅРµ РІС‹Р±СЂР°РЅ")
 	Else
 		$var = StringReplace($var, "|", @CRLF)
 	EndIf
 
-	GUICtrlSetData($edtSqlText, "Выбран файл: " & $var & @CRLF, 1)
+	GUICtrlSetData($edtSqlText, "Р’С‹Р±СЂР°РЅ С„Р°Р№Р»: " & $var & @CRLF, 1)
 
 EndFunc			;_FileOpen()
 
-;Функции обработки JSON файлов----------------
-;названия таблиц из заголовков json-файлов:
-;вначале названия таблицы добавляем "elcat_"
+;Р¤СѓРЅРєС†РёРё РѕР±СЂР°Р±РѕС‚РєРё JSON С„Р°Р№Р»РѕРІ----------------
+;РЅР°Р·РІР°РЅРёСЏ С‚Р°Р±Р»РёС† РёР· Р·Р°РіРѕР»РѕРІРєРѕРІ json-С„Р°Р№Р»РѕРІ:
+;РІРЅР°С‡Р°Р»Рµ РЅР°Р·РІР°РЅРёСЏ С‚Р°Р±Р»РёС†С‹ РґРѕР±Р°РІР»СЏРµРј "elcat_"
 ;"author" "bbk1" "bbk2" "genre" "series" "content" "publisher" "language" "shelfplace" "library" "librarytown"
-Func _ProcessSprTable()                                                       ;Нажатие на кнопку обработки справочной таблицы
+Func _ProcessSprTable()                                                       ;РќР°Р¶Р°С‚РёРµ РЅР° РєРЅРѕРїРєСѓ РѕР±СЂР°Р±РѕС‚РєРё СЃРїСЂР°РІРѕС‡РЅРѕР№ С‚Р°Р±Р»РёС†С‹
 	If (GUICtrlRead($lstSprTable) = "bbk1") Or (GUICtrlRead($lstSprTable) = "bbk2") Or (GUICtrlRead($lstSprTable) = "publisher") Then
-			_ProcessSprTableEx3(GUICtrlRead($lstSprTable))                    ;обработка 3-х аргументной таблицы
+			_ProcessSprTableEx3(GUICtrlRead($lstSprTable))                    ;РѕР±СЂР°Р±РѕС‚РєР° 3-С… Р°СЂРіСѓРјРµРЅС‚РЅРѕР№ С‚Р°Р±Р»РёС†С‹
 	Else
-			_ProcessSprTableEx2(GUICtrlRead($lstSprTable))		              ;обработка 2-х аргументной таблицы
+			_ProcessSprTableEx2(GUICtrlRead($lstSprTable))		              ;РѕР±СЂР°Р±РѕС‚РєР° 2-С… Р°СЂРіСѓРјРµРЅС‚РЅРѕР№ С‚Р°Р±Р»РёС†С‹
 	EndIf
 EndFunc				;_ProcessSprTable()
 
-Func _ProcessMainTablArray()                                                  ;создать двумерный массив для таблицы elcat_book из JSON-файла
+Func _ProcessMainTablArray()                                                  ;СЃРѕР·РґР°С‚СЊ РґРІСѓРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ РґР»СЏ С‚Р°Р±Р»РёС†С‹ elcat_book РёР· JSON-С„Р°Р№Р»Р°
 
 	Local $Json1 = FileRead($var)
 	Local $Data1 = Jsmn_Decode($Json1)
@@ -116,14 +116,14 @@ Func _ProcessMainTablArray()                                                  ;с
 	Local $objJson = Jsmn_Decode($Json1)
 	$1DArray = Jsmn_ObjTo2DArray($objJson)
 
-	;определим двумерный массив
+	;РѕРїСЂРµРґРµР»РёРј РґРІСѓРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ
 	$i = UBound($1DArray)
-	Global $GrandArray2D[$i][20]					                        ;двумерный массив
+	Global $GrandArray2D[$i][20]					                        ;РґРІСѓРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ
 	$NumbersOfArray = $i
 
-	;набиваем двумерный и одмерный массивы данными
+	;РЅР°Р±РёРІР°РµРј РґРІСѓРјРµСЂРЅС‹Р№ Рё РѕРґРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІС‹ РґР°РЅРЅС‹РјРё
 	$i = 0
-	While $i <> 3434245														;дикая переменная (гвоздь)
+	While $i <> 3434245														;РґРёРєР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ (РіРІРѕР·РґСЊ)
 		Jsmn_Get($objJson, '[' & $i & ']')
 		If @error Then
 			$i = 3434245
@@ -147,31 +147,31 @@ Func _ProcessMainTablArray()                                                  ;с
 			$GrandArray2D[$i][16] = Jsmn_Get_ShowResult($objJson, '[' & $i & ']["shelfplace"]')
 			$GrandArray2D[$i][17] = Jsmn_Get_ShowResult($objJson, '[' & $i & ']["library"]')
 			$GrandArray2D[$i][18] = Jsmn_Get_ShowResult($objJson, '[' & $i & ']["librarytown"]')
-			$GrandArray2D[$i][19] = uuid()															;крайний столбец массива содержит в себе айдишники книг
+			$GrandArray2D[$i][19] = uuid()															;РєСЂР°Р№РЅРёР№ СЃС‚РѕР»Р±РµС† РјР°СЃСЃРёРІР° СЃРѕРґРµСЂР¶РёС‚ РІ СЃРµР±Рµ Р°Р№РґРёС€РЅРёРєРё РєРЅРёРі
 			$i = $i + 1
 		EndIf
 	WEnd
 
-	;если в столбце с ценой есть 'null', то нужно заменить его на '0.00'
+	;РµСЃР»Рё РІ СЃС‚РѕР»Р±С†Рµ СЃ С†РµРЅРѕР№ РµСЃС‚СЊ 'null', С‚Рѕ РЅСѓР¶РЅРѕ Р·Р°РјРµРЅРёС‚СЊ РµРіРѕ РЅР° '0.00'
 		For $i = 0 To $NumbersOfArray - 1
 			If $GrandArray2D[$i][15] = "null" Then
 				$GrandArray2D[$i][15] = "0.00"
 			EndIf
 		Next
 
-	;если в столбце с инвентарным номером номера нет, то заменяем это значекние на 'null'
+	;РµСЃР»Рё РІ СЃС‚РѕР»Р±С†Рµ СЃ РёРЅРІРµРЅС‚Р°СЂРЅС‹Рј РЅРѕРјРµСЂРѕРј РЅРѕРјРµСЂР° РЅРµС‚, С‚Рѕ Р·Р°РјРµРЅСЏРµРј СЌС‚Рѕ Р·РЅР°С‡РµРєРЅРёРµ РЅР° 'null'
 		For $i = 0 To $NumbersOfArray - 1
 			If $GrandArray2D[$i][1] = "" Then
 				$GrandArray2D[$i][1] = "null"
 			EndIf
 		Next
 
-;	MsgBox(4096,"","Данные помещены в массив. (MainTable-->GrandArray)")
-	GUICtrlSetData($edtSqlText, "Данные помещены в массив. (MainTable-->GrandArray)" & @CRLF, 1)
+;	MsgBox(4096,"","Р”Р°РЅРЅС‹Рµ РїРѕРјРµС‰РµРЅС‹ РІ РјР°СЃСЃРёРІ. (MainTable-->GrandArray)")
+	GUICtrlSetData($edtSqlText, "Р”Р°РЅРЅС‹Рµ РїРѕРјРµС‰РµРЅС‹ РІ РјР°СЃСЃРёРІ. (MainTable-->GrandArray)" & @CRLF, 1)
 
 EndFunc	            ;_ProcessMainTablArray()
 
-Func _ProcessSprTableEx2($SprTableName)                                        ;обработка справочной таблицы с двумя аргументами
+Func _ProcessSprTableEx2($SprTableName)                                        ;РѕР±СЂР°Р±РѕС‚РєР° СЃРїСЂР°РІРѕС‡РЅРѕР№ С‚Р°Р±Р»РёС†С‹ СЃ РґРІСѓРјСЏ Р°СЂРіСѓРјРµРЅС‚Р°РјРё
 
 	Local $Json1 = FileRead($var)
 	Local $Data1 = Jsmn_Decode($Json1)
@@ -182,12 +182,12 @@ Func _ProcessSprTableEx2($SprTableName)                                        ;
 	Local $objJson = Jsmn_Decode($Json1)
 	$1DArray = Jsmn_ObjTo2DArray($objJson)
 
-	;определим два массива с размерностью по кол-ву записей из JSON-файла
-	$BigContArray = $1DArray												;Основной контент
-	$TmpContArray = $1DArray												;Временный контент
+	;РѕРїСЂРµРґРµР»РёРј РґРІР° РјР°СЃСЃРёРІР° СЃ СЂР°Р·РјРµСЂРЅРѕСЃС‚СЊСЋ РїРѕ РєРѕР»-РІСѓ Р·Р°РїРёСЃРµР№ РёР· JSON-С„Р°Р№Р»Р°
+	$BigContArray = $1DArray												;РћСЃРЅРѕРІРЅРѕР№ РєРѕРЅС‚РµРЅС‚
+	$TmpContArray = $1DArray												;Р’СЂРµРјРµРЅРЅС‹Р№ РєРѕРЅС‚РµРЅС‚
 
 	$i = 0
-	While $i <> 3434245														;дикая переменная (гвоздь)
+	While $i <> 3434245														;РґРёРєР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ (РіРІРѕР·РґСЊ)
 		Jsmn_Get($objJson, '[' & $i & ']')
 		If @error Then
 			$i = 3434245
@@ -198,38 +198,38 @@ Func _ProcessSprTableEx2($SprTableName)                                        ;
 	WEnd
 
 	$TmpContArray = $BigContArray
-	_ArraySort($TmpContArray)												;Основной массив сортировать нельзя
+	_ArraySort($TmpContArray)												;РћСЃРЅРѕРІРЅРѕР№ РјР°СЃСЃРёРІ СЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РЅРµР»СЊР·СЏ
 
-    ;Меняем "null" на "без автора" в большом массиве с контентом
+    ;РњРµРЅСЏРµРј "null" РЅР° "Р±РµР· Р°РІС‚РѕСЂР°" РІ Р±РѕР»СЊС€РѕРј РјР°СЃСЃРёРІРµ СЃ РєРѕРЅС‚РµРЅС‚РѕРј
 	If $SprTableName = "author" Then
 		For $i = 0 To UBound($BigContArray) - 1
 			If $BigContArray[$i] = "null" Then
-				$BigContArray[$i] = "без автора"
+				$BigContArray[$i] = "Р±РµР· Р°РІС‚РѕСЂР°"
 			EndIf
 		Next
 	EndIf
 
-	;Удаляем дубликаты из временного массива с контентом
+	;РЈРґР°Р»СЏРµРј РґСѓР±Р»РёРєР°С‚С‹ РёР· РІСЂРµРјРµРЅРЅРѕРіРѕ РјР°СЃСЃРёРІР° СЃ РєРѕРЅС‚РµРЅС‚РѕРј
 	For $i = UBound($TmpContArray) - 1 To 1 Step - 1
 		If $TmpContArray[$i] = $TmpContArray[$i - 1] Then _ArrayDelete($TmpContArray, $i)
 	Next
 
-	;Меняем "null" на "без автора" во временном, маленьком массиве
+	;РњРµРЅСЏРµРј "null" РЅР° "Р±РµР· Р°РІС‚РѕСЂР°" РІРѕ РІСЂРµРјРµРЅРЅРѕРј, РјР°Р»РµРЅСЊРєРѕРј РјР°СЃСЃРёРІРµ
 	If $SprTableName = "author" Then
 		For $i = 0 To UBound($TmpContArray) - 1
 			If $TmpContArray[$i] = "null" Then
-				$TmpContArray[$i] = "без автора"
+				$TmpContArray[$i] = "Р±РµР· Р°РІС‚РѕСЂР°"
 			EndIf
 		Next
 	EndIf
 
-	;Создаем малый массив с UID
+	;РЎРѕР·РґР°РµРј РјР°Р»С‹Р№ РјР°СЃСЃРёРІ СЃ UID
 	$UIDTmpContArray = $TmpContArray
 	For $i = 0 To UBound($TmpContArray) - 1
 		$UIDTmpContArray[$i] = uuid()
 	Next
-;	_ArrayDisplay($TmpContArray, "Итоговый массив малый(временный)")
-;	_ArrayDisplay($UIDTmpContArray, "Малый UID-массив")
+;	_ArrayDisplay($TmpContArray, "РС‚РѕРіРѕРІС‹Р№ РјР°СЃСЃРёРІ РјР°Р»С‹Р№(РІСЂРµРјРµРЅРЅС‹Р№)")
+;	_ArrayDisplay($UIDTmpContArray, "РњР°Р»С‹Р№ UID-РјР°СЃСЃРёРІ")
 
 	Select
 		Case $SprTableName = "author"
@@ -258,7 +258,7 @@ Func _ProcessSprTableEx2($SprTableName)                                        ;
 			$ArrayTableIndex = 18
 	EndSelect
 
-	;Создать UID-массив для большого не отсортированного массива
+	;РЎРѕР·РґР°С‚СЊ UID-РјР°СЃСЃРёРІ РґР»СЏ Р±РѕР»СЊС€РѕРіРѕ РЅРµ РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅРѕРіРѕ РјР°СЃСЃРёРІР°
 	$i = 0
 	$i1 = 0
 	$UIDBigContArray = $BigContArray
@@ -271,11 +271,11 @@ Func _ProcessSprTableEx2($SprTableName)                                        ;
 		Next
 	Next
 
-	;Вывод SQL-запроса на внесение данных в справочную таблицу в MySQL
-	;создаем временный файл, в него будет помещаться код sql запроса
+	;Р’С‹РІРѕРґ SQL-Р·Р°РїСЂРѕСЃР° РЅР° РІРЅРµСЃРµРЅРёРµ РґР°РЅРЅС‹С… РІ СЃРїСЂР°РІРѕС‡РЅСѓСЋ С‚Р°Р±Р»РёС†Сѓ РІ MySQL
+	;СЃРѕР·РґР°РµРј РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р», РІ РЅРµРіРѕ Р±СѓРґРµС‚ РїРѕРјРµС‰Р°С‚СЊСЃСЏ РєРѕРґ sql Р·Р°РїСЂРѕСЃР°
 	$fileOut = FileOpen("temp.txt" , 10)
 	If $fileOut = -1 Then
-		MsgBox(0, "Error", "Временный файл не создан.")
+		MsgBox(0, "Error", "Р’СЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р» РЅРµ СЃРѕР·РґР°РЅ.")
 		Exit
 	EndIf
 
@@ -285,20 +285,20 @@ Func _ProcessSprTableEx2($SprTableName)                                        ;
 	$i1 = UBound($TmpContArray) - 1
 	For $i = 0 To UBound($TmpContArray) - 1
 		If $i = $i1 Then
-			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "');" & @CRLF)     ;последняя строка SQL-edit
-;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "');" & @CRLF, 1)     ;последняя строка SQL-edit
+			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "');" & @CRLF)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
+;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "');" & @CRLF, 1)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
 		Else
-			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "')," & @CRLF)     ;рядовая строка SQL-edit
-;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "')," & @CRLF, 1)     ;рядовая строка SQL-edit
+			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "')," & @CRLF)     ;СЂСЏРґРѕРІР°СЏ СЃС‚СЂРѕРєР° SQL-edit
+;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray[$i] & "')," & @CRLF, 1)     ;СЂСЏРґРѕРІР°СЏ СЃС‚СЂРѕРєР° SQL-edit
 		EndIf
 	Next
 
-	;Если обрабатывается таблица author , то создать дополнительный файл для промежуточной связной таблицы, т.к. есть связь многие ко многим
+	;Р•СЃР»Рё РѕР±СЂР°Р±Р°С‚С‹РІР°РµС‚СЃСЏ С‚Р°Р±Р»РёС†Р° author , С‚Рѕ СЃРѕР·РґР°С‚СЊ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Р№ С„Р°Р№Р» РґР»СЏ РїСЂРѕРјРµР¶СѓС‚РѕС‡РЅРѕР№ СЃРІСЏР·РЅРѕР№ С‚Р°Р±Р»РёС†С‹, С‚.Рє. РµСЃС‚СЊ СЃРІСЏР·СЊ РјРЅРѕРіРёРµ РєРѕ РјРЅРѕРіРёРј
 	If $SprTableName = "author" Then
-		;создаем временный файл, в него будет помещаться код sql запроса
+		;СЃРѕР·РґР°РµРј РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р», РІ РЅРµРіРѕ Р±СѓРґРµС‚ РїРѕРјРµС‰Р°С‚СЊСЃСЏ РєРѕРґ sql Р·Р°РїСЂРѕСЃР°
 		$fileOut2 = FileOpen("temp2.txt" , 10)
 		If $fileOut2 = -1 Then
-			MsgBox(0, "Error", "Временный файл не создан.")
+			MsgBox(0, "Error", "Р’СЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р» РЅРµ СЃРѕР·РґР°РЅ.")
 			Exit
 		EndIf
 		$1stString = "INSERT INTO " & $AppDBPrefix & "book_author_id ( book_id, author_id ) VALUES"
@@ -307,9 +307,9 @@ Func _ProcessSprTableEx2($SprTableName)                                        ;
 		$i1 = UBound($BigContArray) - 1
 		For $i = 0 To UBound($BigContArray) - 1
 			If $i = $i1 Then
-				FileWriteLine($fileOut2, "(" & $GrandArray2D[$i][19] & ", " & $UIDBigContArray[$i] & ");" & @CRLF)     ;последняя строка SQL-edit
+				FileWriteLine($fileOut2, "(" & $GrandArray2D[$i][19] & ", " & $UIDBigContArray[$i] & ");" & @CRLF)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
 			Else
-				FileWriteLine($fileOut2, "(" & $GrandArray2D[$i][19] & ", " & $UIDBigContArray[$i] & ")," & @CRLF)     ;рядовая строка SQL-edit
+				FileWriteLine($fileOut2, "(" & $GrandArray2D[$i][19] & ", " & $UIDBigContArray[$i] & ")," & @CRLF)     ;СЂСЏРґРѕРІР°СЏ СЃС‚СЂРѕРєР° SQL-edit
 			EndIf
 		Next
 		FileCopy("temp2.txt", $var & "_elcat_book_author_id_SQL.txt", 8)
@@ -317,17 +317,17 @@ Func _ProcessSprTableEx2($SprTableName)                                        ;
 		FileClose($fileOut2)
 	EndIf
 
-	;вывод итогового результата SQL-кода в файл для итоговой таблицы book
+	;РІС‹РІРѕРґ РёС‚РѕРіРѕРІРѕРіРѕ СЂРµР·СѓР»СЊС‚Р°С‚Р° SQL-РєРѕРґР° РІ С„Р°Р№Р» РґР»СЏ РёС‚РѕРіРѕРІРѕР№ С‚Р°Р±Р»РёС†С‹ book
 	FileCopy("temp.txt", $var & "_" & $AppDBPrefix & $SprTableName & "_SQL.txt", 8)
 	FileDelete("temp.txt")
 	$FileVar = $var & "_" & $AppDBPrefix & $SprTableName & "_SQL.txt"
 	ShellExecute( $FileVar )
-	GUICtrlSetData($edtSqlText, "Обработана таблица: " & $SprTableName & @CRLF, 1)
+	GUICtrlSetData($edtSqlText, "РћР±СЂР°Р±РѕС‚Р°РЅР° С‚Р°Р±Р»РёС†Р°: " & $SprTableName & @CRLF, 1)
 	FileClose($fileOut)
 
 EndFunc				;_ProcessSprTableEx2()
 
-Func _ProcessSprTableEx3($SprTableName)                                        ;обработка справочной таблицы с тремя аргументами
+Func _ProcessSprTableEx3($SprTableName)                                        ;РѕР±СЂР°Р±РѕС‚РєР° СЃРїСЂР°РІРѕС‡РЅРѕР№ С‚Р°Р±Р»РёС†С‹ СЃ С‚СЂРµРјСЏ Р°СЂРіСѓРјРµРЅС‚Р°РјРё
 
 	Local $Json1 = FileRead($var)
 	Local $Data1 = Jsmn_Decode($Json1)
@@ -338,26 +338,26 @@ Func _ProcessSprTableEx3($SprTableName)                                        ;
 	Local $objJson = Jsmn_Decode($Json1)
 	$1DArray = Jsmn_ObjTo2DArray($objJson)
 
-	;определим двумерный массив
+	;РѕРїСЂРµРґРµР»РёРј РґРІСѓРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ
 	$i = UBound($1DArray)
-	Local $BigContArray2D[$i][2]									        ;двумерный массив, Основной контент
-	Local $TmpContArray2D[$i][2]                                            ;двумерный временный массив
-	;определим два	массива с размерностью по кол-ву записей из JSON-файла
-	$BigContArray = $1DArray												;одномерный массив, Основной контент
-	$TmpContArray = $1DArray												;Временный контент
+	Local $BigContArray2D[$i][2]									        ;РґРІСѓРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ, РћСЃРЅРѕРІРЅРѕР№ РєРѕРЅС‚РµРЅС‚
+	Local $TmpContArray2D[$i][2]                                            ;РґРІСѓРјРµСЂРЅС‹Р№ РІСЂРµРјРµРЅРЅС‹Р№ РјР°СЃСЃРёРІ
+	;РѕРїСЂРµРґРµР»РёРј РґРІР°	РјР°СЃСЃРёРІР° СЃ СЂР°Р·РјРµСЂРЅРѕСЃС‚СЊСЋ РїРѕ РєРѕР»-РІСѓ Р·Р°РїРёСЃРµР№ РёР· JSON-С„Р°Р№Р»Р°
+	$BigContArray = $1DArray												;РѕРґРЅРѕРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ, РћСЃРЅРѕРІРЅРѕР№ РєРѕРЅС‚РµРЅС‚
+	$TmpContArray = $1DArray												;Р’СЂРµРјРµРЅРЅС‹Р№ РєРѕРЅС‚РµРЅС‚
 
 	Select
 		Case $SprTableName = "bbk1"
-			$SprTableName2 = "bbk1desc"                                      ;в БД это поле называется description1
+			$SprTableName2 = "bbk1desc"                                      ;РІ Р‘Р” СЌС‚Рѕ РїРѕР»Рµ РЅР°Р·С‹РІР°РµС‚СЃСЏ description1
 		Case $SprTableName = "bbk2"
-			$SprTableName2 = "bbk2desc"                                      ;в БД это поле называется description2
+			$SprTableName2 = "bbk2desc"                                      ;РІ Р‘Р” СЌС‚Рѕ РїРѕР»Рµ РЅР°Р·С‹РІР°РµС‚СЃСЏ description2
 		Case $SprTableName = "publisher"
 			$SprTableName2 = "city"
 	EndSelect
 
-	;набиваем двумерный и одмерный массивы данными
+	;РЅР°Р±РёРІР°РµРј РґРІСѓРјРµСЂРЅС‹Р№ Рё РѕРґРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІС‹ РґР°РЅРЅС‹РјРё
 	$i = 0
-	While $i <> 3434245														;дикая переменная (гвоздь)
+	While $i <> 3434245														;РґРёРєР°СЏ РїРµСЂРµРјРµРЅРЅР°СЏ (РіРІРѕР·РґСЊ)
 		Jsmn_Get($objJson, '[' & $i & ']')
 		If @error Then
 			$i = 3434245
@@ -372,16 +372,16 @@ Func _ProcessSprTableEx3($SprTableName)                                        ;
 	$TmpContArray = $BigContArray
 	$TmpContArray2D = $BigContArray2D
 
-	_ArraySort($TmpContArray)													;Основной массив сортировать нельзя
+	_ArraySort($TmpContArray)													;РћСЃРЅРѕРІРЅРѕР№ РјР°СЃСЃРёРІ СЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РЅРµР»СЊР·СЏ
 	_ArraySort($TmpContArray2D)
 
-	;Удаляем дубликаты из временного массива с контентом
+	;РЈРґР°Р»СЏРµРј РґСѓР±Р»РёРєР°С‚С‹ РёР· РІСЂРµРјРµРЅРЅРѕРіРѕ РјР°СЃСЃРёРІР° СЃ РєРѕРЅС‚РµРЅС‚РѕРј
 	For $i = UBound($TmpContArray) - 1 To 1 Step - 1
 		If $TmpContArray2D[$i][0] = $TmpContArray2D[$i - 1][0] Then _ArrayDelete($TmpContArray2D, $i)
 		If $TmpContArray[$i] = $TmpContArray[$i - 1] Then _ArrayDelete($TmpContArray, $i)
 	Next
 
-	;Создаем малый массив с UID
+	;РЎРѕР·РґР°РµРј РјР°Р»С‹Р№ РјР°СЃСЃРёРІ СЃ UID
 	$UIDTmpContArray = $TmpContArray
 	For $i = 0 To UBound($TmpContArray) - 1
 		$UIDTmpContArray[$i] = uuid()
@@ -399,7 +399,7 @@ Func _ProcessSprTableEx3($SprTableName)                                        ;
 			$ArrayTableIndex = 11
 	EndSelect
 
-	;Создать UID-массив для большого не отсортированного массива
+	;РЎРѕР·РґР°С‚СЊ UID-РјР°СЃСЃРёРІ РґР»СЏ Р±РѕР»СЊС€РѕРіРѕ РЅРµ РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅРѕРіРѕ РјР°СЃСЃРёРІР°
 	$i = 0
 	$i1 = 0
 	$UIDBigContArray = $BigContArray
@@ -412,11 +412,11 @@ Func _ProcessSprTableEx3($SprTableName)                                        ;
 		Next
 	Next
 
-	;Вывод SQL-запроса на внесение данных в справочную таблицу в MySQL
-		;создаем временный файл, в него будет помещаться код sql запроса
+	;Р’С‹РІРѕРґ SQL-Р·Р°РїСЂРѕСЃР° РЅР° РІРЅРµСЃРµРЅРёРµ РґР°РЅРЅС‹С… РІ СЃРїСЂР°РІРѕС‡РЅСѓСЋ С‚Р°Р±Р»РёС†Сѓ РІ MySQL
+		;СЃРѕР·РґР°РµРј РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р», РІ РЅРµРіРѕ Р±СѓРґРµС‚ РїРѕРјРµС‰Р°С‚СЊСЃСЏ РєРѕРґ sql Р·Р°РїСЂРѕСЃР°
 	$fileOut = FileOpen("temp.txt" , 10)
 	If $fileOut = -1 Then
-		MsgBox(0, "Error", "Временный файл не создан.")
+		MsgBox(0, "Error", "Р’СЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р» РЅРµ СЃРѕР·РґР°РЅ.")
 		Exit
 	EndIf
 
@@ -426,35 +426,35 @@ Func _ProcessSprTableEx3($SprTableName)                                        ;
 	$i1 = UBound($TmpContArray) - 1
 	For $i = 0 To UBound($TmpContArray) - 1
 		If $i = $i1 Then
-			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "');" & @CRLF)     ;последняя строка SQL-edit
-;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "');" & @CRLF, 1)     ;последняя строка SQL-edit
+			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "');" & @CRLF)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
+;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "');" & @CRLF, 1)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
 		Else
-			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "')," & @CRLF)     ;рядовая строка SQL-edit
-;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "')," & @CRLF, 1)     ;рядовая строка SQL-edit
+			FileWriteLine($fileOut, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "')," & @CRLF)     ;СЂСЏРґРѕРІР°СЏ СЃС‚СЂРѕРєР° SQL-edit
+;			GUICtrlSetData($edtSqlText, "(" & $UIDTmpContArray[$i] & ", " & "'" & $TmpContArray2D[$i][0] & "' , " & "'" & $TmpContArray2D[$i][1] & "')," & @CRLF, 1)     ;СЂСЏРґРѕРІР°СЏ СЃС‚СЂРѕРєР° SQL-edit
 		EndIf
 	Next
 
-	;вывод итогового результата SQL-кода в файл для итоговой таблицы book
+	;РІС‹РІРѕРґ РёС‚РѕРіРѕРІРѕРіРѕ СЂРµР·СѓР»СЊС‚Р°С‚Р° SQL-РєРѕРґР° РІ С„Р°Р№Р» РґР»СЏ РёС‚РѕРіРѕРІРѕР№ С‚Р°Р±Р»РёС†С‹ book
 	FileCopy("temp.txt", $var & "_" & $AppDBPrefix & $SprTableName & "_SQL.txt", 8)
 	FileDelete("temp.txt")
 	$FileVar = $var & "_" & $AppDBPrefix & $SprTableName & "_SQL.txt"
 	ShellExecute( $FileVar )
 
-	GUICtrlSetData($edtSqlText, "Обработана таблица: " & $SprTableName & @CRLF, 1)
+	GUICtrlSetData($edtSqlText, "РћР±СЂР°Р±РѕС‚Р°РЅР° С‚Р°Р±Р»РёС†Р°: " & $SprTableName & @CRLF, 1)
 	FileClose($fileOut)
 
 EndFunc				;_ProcessSprTableEx3()
 
-Func _ProcessMainTable()                                                       ;обработка основной таблицы
+Func _ProcessMainTable()                                                       ;РѕР±СЂР°Р±РѕС‚РєР° РѕСЃРЅРѕРІРЅРѕР№ С‚Р°Р±Р»РёС†С‹
 
-	;создаем временный файл, в него будет помещаться код sql запроса
+	;СЃРѕР·РґР°РµРј РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р», РІ РЅРµРіРѕ Р±СѓРґРµС‚ РїРѕРјРµС‰Р°С‚СЊСЃСЏ РєРѕРґ sql Р·Р°РїСЂРѕСЃР°
 	$fileOut = FileOpen("temp.txt" , 10)
 	If $fileOut = -1 Then
-		MsgBox(0, "Error", "Временный файл не создан.")
+		MsgBox(0, "Error", "Р’СЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р» РЅРµ СЃРѕР·РґР°РЅ.")
 		Exit
 	EndIf
 
-	;Вывод SQL-запроса на внесение данных в основную таблицу (elcat_book) в MySQL
+	;Р’С‹РІРѕРґ SQL-Р·Р°РїСЂРѕСЃР° РЅР° РІРЅРµСЃРµРЅРёРµ РґР°РЅРЅС‹С… РІ РѕСЃРЅРѕРІРЅСѓСЋ С‚Р°Р±Р»РёС†Сѓ (elcat_book) РІ MySQL
 	$1stString = "INSERT INTO " & $AppDBPrefix & "book (book_id, name, inventory, volume, bookauthor_id, isbn, isbn10, bbk1_id, bbk2_id, genre_id, series_id, content_id, publisher_id, year, pages, language_id, price, shelfplace_id, library_id, librarytown_id) VALUES"
 	FileWriteLine($fileOut, $1stString & @CRLF)
 ;	GUICtrlSetData($edtSqlText, $1stString & @CRLF, 1)
@@ -463,16 +463,16 @@ Func _ProcessMainTable()                                                       ;
 	For $i = 0 To $NumbersOfArray - 1
 		If $i = $i1 Then
 			;                             book_id                         name                           inventory                      volume                         author_id                      isbn                            isbn10                         bbk1_id                       bbk2_id                       genre_id                      series_id                     content_id                     publisher_id                    year                             pages                           language_id                     price                           shelfplace_id                  library_id                     librarytown_id
-			FileWriteLine($fileOut, "(" & $GrandArray2D[$i][19] & ", '" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & ");" & @CRLF)     ;последняя строка SQL-edit
-;			GUICtrlSetData($edtSqlText, "('" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & "');" & @CRLF, 1)     ;последняя строка SQL-edit
+			FileWriteLine($fileOut, "(" & $GrandArray2D[$i][19] & ", '" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & ");" & @CRLF)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
+;			GUICtrlSetData($edtSqlText, "('" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & "');" & @CRLF, 1)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
 		Else
 			;                             book_id                         name                           inventory                      volume                         author_id                      isbn                            isbn10                         bbk1_id                       bbk2_id                       genre_id                      series_id                     content_id                     publisher_id                    year                             pages                           language_id                     price                           shelfplace_id                  library_id                     librarytown_id
-			FileWriteLine($fileOut, "(" & $GrandArray2D[$i][19] & ", '" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & ")," & @CRLF)     ;последняя строка SQL-edit
-;			GUICtrlSetData($edtSqlText, "('" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & "')," & @CRLF, 1)     ;последняя строка SQL-edit
+			FileWriteLine($fileOut, "(" & $GrandArray2D[$i][19] & ", '" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & ")," & @CRLF)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
+;			GUICtrlSetData($edtSqlText, "('" & $GrandArray2D[$i][0] & "', " & $GrandArray2D[$i][1] & ", '" & $GrandArray2D[$i][2] & "', " & $GrandArray2D[$i][3] & ", '" & $GrandArray2D[$i][4] & "', '" & $GrandArray2D[$i][5] & "', " & $GrandArray2D[$i][6] & ", " & $GrandArray2D[$i][7] & ", " & $GrandArray2D[$i][8] & ", " & $GrandArray2D[$i][9] & ", " & $GrandArray2D[$i][10] & ", " & $GrandArray2D[$i][11] & ", '" & $GrandArray2D[$i][12] & "', '" & $GrandArray2D[$i][13] & "', " & $GrandArray2D[$i][14] & ", '" & $GrandArray2D[$i][15] & "', " & $GrandArray2D[$i][16] & ", " & $GrandArray2D[$i][17] & ", " & $GrandArray2D[$i][18] & "')," & @CRLF, 1)     ;РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° SQL-edit
 		EndIf
 	Next
 
-	;вывод итогового результата SQL-кода в файл для итоговой таблицы book
+	;РІС‹РІРѕРґ РёС‚РѕРіРѕРІРѕРіРѕ СЂРµР·СѓР»СЊС‚Р°С‚Р° SQL-РєРѕРґР° РІ С„Р°Р№Р» РґР»СЏ РёС‚РѕРіРѕРІРѕР№ С‚Р°Р±Р»РёС†С‹ book
 	FileCopy("temp.txt", $var & "_book_SQL.txt", 8)
 	FileDelete("temp.txt")
 	$FileVar = $var & "_book_SQL.txt"
@@ -482,19 +482,19 @@ Func _ProcessMainTable()                                                       ;
 	FileClose($FileVar)
 	FileClose($fileOut)
 
-	GUICtrlSetData($edtSqlText, "Обработана основная таблица: book" & @CRLF, 1)
+	GUICtrlSetData($edtSqlText, "РћР±СЂР°Р±РѕС‚Р°РЅР° РѕСЃРЅРѕРІРЅР°СЏ С‚Р°Р±Р»РёС†Р°: book" & @CRLF, 1)
 	GUICtrlSetData($edtSqlText, "---------------------------------" & @CRLF, 1)
 
 EndFunc             ;_ProcessMainTable
 
-Func _LogClear()                                                               ;Очистка окна с логом работы программы
+Func _LogClear()                                                               ;РћС‡РёСЃС‚РєР° РѕРєРЅР° СЃ Р»РѕРіРѕРј СЂР°Р±РѕС‚С‹ РїСЂРѕРіСЂР°РјРјС‹
 	GUICtrlDelete($edtSqlText)
 	$edtSqlText = GUICtrlCreateEdit("", 408, 40, 537, 305, BitOR($ES_AUTOVSCROLL, $ES_AUTOHSCROLL, $WS_VSCROLL, $WS_HSCROLL, $ES_MULTILINE))
 EndFunc             ;_LogClear()
 ;---------------------------------------------
 
-;Локальные функции----------------------------------------------------------------------------------------------------------
-Func Jsmn_Get_ShowResult($Var, $Key)                                     ;Показывает в консоли данные по конкретному ключу
+;Р›РѕРєР°Р»СЊРЅС‹Рµ С„СѓРЅРєС†РёРё----------------------------------------------------------------------------------------------------------
+Func Jsmn_Get_ShowResult($Var, $Key)                                     ;РџРѕРєР°Р·С‹РІР°РµС‚ РІ РєРѕРЅСЃРѕР»Рё РґР°РЅРЅС‹Рµ РїРѕ РєРѕРЅРєСЂРµС‚РЅРѕРјСѓ РєР»СЋС‡Сѓ
     Local $Ret = Jsmn_Get($Var, $Key)
     If @Error Then
         Switch @error
@@ -511,7 +511,7 @@ Func Jsmn_Get_ShowResult($Var, $Key)                                     ;Показы
     EndIf
 EndFunc     ;Jsmn_Get_ShowResult()
 
-Func Jsmn_Get($Var, $Key)											     ;Вытаскивает объект по конкретному ключу
+Func Jsmn_Get($Var, $Key)											     ;Р’С‹С‚Р°СЃРєРёРІР°РµС‚ РѕР±СЉРµРєС‚ РїРѕ РєРѕРЅРєСЂРµС‚РЅРѕРјСѓ РєР»СЋС‡Сѓ
     If Not $Key Then Return $Var
 
     Local $Match = StringRegExp($Key, "(^\[([^\]]+)\])", 3)
@@ -535,7 +535,7 @@ Func Jsmn_Get($Var, $Key)											     ;Вытаскивает объект по конкретному ключ
     Return SetError(2, 0, "")
 EndFunc		;Jsmn_Get()
 
-Func uuid()											       	             ;Генерирует UID, для уникальных значений ключей
+Func uuid()											       	             ;Р“РµРЅРµСЂРёСЂСѓРµС‚ UID, РґР»СЏ СѓРЅРёРєР°Р»СЊРЅС‹С… Р·РЅР°С‡РµРЅРёР№ РєР»СЋС‡РµР№
     Return StringFormat('%02d%02d%02d%04d%04d', _
             Random(10, 99), _
 			Random(0, 99), _
